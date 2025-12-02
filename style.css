@@ -1,0 +1,155 @@
+/* Base & Golden Parchment Theme */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Georgia', serif; /* Tarot serif vibe */
+    background-color: #f5f5dc; /* Parchment beige */
+    color: #8b4513; /* Saddle brown text */
+    overflow: hidden; /* Prevent body scroll */
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Grain Texture (Pure CSS Noise) */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: 
+        radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.5;
+}
+
+/* Slot Container: Vertical Reel */
+#slot-container {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth; /* Native momentum */
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    gap: 1rem; /* Card spacing */
+}
+
+/* Cards: Tarot-Style */
+.profile-card {
+    flex: 0 0 80vh; /* Default height */
+    scroll-snap-align: center;
+    background: linear-gradient(145deg, #fffaf0, #f0e68c); /* Parchment gradient */
+    border: 3px solid #d4af37; /* Gold border aura */
+    border-radius: 25px; /* Rounded tarot rect */
+    box-shadow: 
+        0 10px 30px rgba(212, 175, 55, 0.3), /* Outer glow */
+        inset 0 1px 0 rgba(255,255,255,0.5), /* Gloss highlight */
+        inset 0 -1px 0 rgba(0,0,0,0.1); /* Subtle depth */
+    position: relative;
+    margin: 0 auto;
+    width: 90%; max-width: 300px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+}
+
+.profile-card::before { /* Aura based on archetype */
+    content: '';
+    position: absolute;
+    top: -10px; left: -10px; right: -10px; bottom: -10px;
+    border-radius: 25px;
+    opacity: 0.7;
+    z-index: -1;
+}
+
+.profile-card.empath::before { background: radial-gradient(circle, #87ceeb 0%, transparent 70%); } /* Blue */
+.profile-card.wanderer::before { background: radial-gradient(circle, #daa520 0%, transparent 70%); } /* Gold-orange */
+.profile-card.creator::before { background: radial-gradient(circle, #ff69b4 0%, transparent 70%); } /* Pink */
+.profile-card.oracle::before { background: radial-gradient(circle, #9370db 0%, transparent 70%); } /* Purple */
+.profile-card.shadowlight::before { background: radial-gradient(circle, #696969 0%, transparent 70%); } /* Gray */
+
+/* Tilt/Parallax on Scroll (JS-applied) */
+.profile-card.tilted {
+    transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) scale(var(--scale, 1));
+}
+
+/* Center Activation: 3D Pop */
+.profile-card.active {
+    transform: translateZ(20px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
+    z-index: 10;
+}
+
+/* Transparent Overlays */
+.card-overlay {
+    position: absolute;
+    top: 1rem; left: 1rem; right: 1rem;
+    background: rgba(255,255,255,0.8);
+    border-radius: 10px;
+    padding: 0.5rem;
+    backdrop-filter: blur(5px);
+}
+
+.archetype-artwork {
+    flex: 1;
+    width: 100%;
+    height: 60%;
+    background: #f0e68c; /* Placeholder; future AI art */
+    border-radius: 15px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem; /* Emoji placeholder */
+}
+
+.archetype-title { font-size: 1.5rem; font-weight: bold; color: #d4af37; margin-bottom: 0.5rem; }
+.archetype-meaning { font-style: italic; font-size: 0.9rem; color: #8b4513; }
+
+/* Side Panels: Curvy Pods */
+.side-panel {
+    position: fixed;
+    top: 50%; transform: translateY(-50%);
+    width: 250px; height: 400px;
+    background: linear-gradient(145deg, #fffaf0, #f0e68c);
+    border: 2px solid #d4af37;
+    border-radius: 30px;
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+    padding: 2rem;
+    z-index: 20;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Slide ease */
+    overflow-y: auto;
+}
+
+#left-panel { left: -300px; } /* Hidden left */
+#left-panel:not(.hidden) { left: 50px; } /* Slide from left */
+#right-panel { right: -300px; } /* Hidden right */
+#right-panel:not(.hidden) { right: 50px; } /* Slide from right */
+
+.panel-content { height: 100%; }
+.panel-content h3 { text-align: center; margin-bottom: 1rem; color: #d4af37; }
+.panel-content ul, .panel-content dl { list-style: none; }
+.panel-content button { display: block; width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(212, 175, 55, 0.2); border: 1px solid #d4af37; border-radius: 15px; cursor: pointer; transition: background 0.3s; }
+.panel-content button:hover { background: rgba(212, 175, 55, 0.4); }
+.panel-content button:disabled { opacity: 0.5; cursor: not-allowed; }
+.panel-content dt { font-weight: bold; margin-top: 1rem; }
+.panel-content dd { margin-bottom: 0.5rem; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-card { flex: 0 0 60vh; width: 95%; }
+    .side-panel { width: 200px; height: 300px; padding: 1rem; }
+    #left-panel:not(.hidden) { left: 20px; }
+    #right-panel:not(.hidden) { right: 20px; }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+@media (prefers-contrast: high) { .profile-card { border-width: 4px; } }
