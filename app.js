@@ -1,12 +1,12 @@
-// Meta Match App - Fixed Glitches + Filters (Dec 2025)
+// Meta Match App - Filters Fixed + Squeeze + Chat (Dec 2025)
 (function() {
     'use strict';
 
     // Config
     const API_BASE = 'https://pandeyprateek057-meta-match.hf.space';
-    const DRAG_THRESHOLD = 50; // Higher for no random
-    const EDGE_WIDTH = 50; // Drag must start on edge
-    const TAP_THRESHOLD = 150; // ms for tap vs drag
+    const DRAG_THRESHOLD = 50;
+    const EDGE_WIDTH = 50;
+    const TAP_THRESHOLD = 150;
     const archetypes = ['empath', 'wanderer', 'creator', 'oracle', 'shadowlight'];
 
     // State
@@ -18,21 +18,30 @@
     let startX = 0, startY = 0;
     let currentUser = null;
     let filterParams = { scope: 'global', state: '', gender: '' };
+    let chatMessages = []; // For chat state
 
     // DOM
     const slotContainer = document.getElementById('slot-container');
     const leftPanel = document.getElementById('left-panel');
     const rightPanel = document.getElementById('right-panel');
+    const currentCard = () => cards.get(currentCenterId); // Helper
     const cards = new Map();
     const filterToggle = document.getElementById('filter-toggle');
     const filterDropdown = document.querySelector('.filter-dropdown');
     const applyFilter = document.getElementById('apply-filter');
+    const chatModal = document.getElementById('chat-modal');
+    const chatTitle = document.getElementById('chat-title');
+    const chatBubbles = document.getElementById('chat-bubbles');
+    const chatInput = document.getElementById('chat-input');
+    const sendMessage = document.getElementById('send-message');
+    const shareMedia = document.getElementById('share-media');
+    const closeChat = document.querySelector('.close-chat');
 
-    // Dummies with Gender
+    // Dummies (with gender fixed)
     function generateDummies() {
         const dummies = [];
-        const namesM = ['Aarav', 'Raj', 'Vikram', 'Arjun']; // Male
-        const namesF = ['Priya', 'Meera', 'Lila', 'Sita']; // Female
+        const namesM = ['Aarav', 'Raj', 'Vikram', 'Arjun'];
+        const namesF = ['Priya', 'Meera', 'Lila', 'Sita'];
         const states = ['Maharashtra', 'Karnataka', 'Delhi', 'Tamil Nadu', 'Gujarat'];
         const intents = ['Seeking Adventure', 'Deep Connections', 'Creative Sparks', 'Wisdom Exchange', 'Balance Journey'];
         const abouts = ['Loves midnight philosophies.', 'Artist at heart.', 'Wanderlust eternal.', 'Seer of patterns.', 'Dancing in shadows.'];
@@ -56,7 +65,7 @@
     // Fetch with Filters
     async function fetchUsers() {
         try {
-            let url = `${API_BASE}/discover?global=${filterParams.scope === 'global' ? 1 : 0}&state=${filterParams.state}&gender=${filterParams.gender}`;
+            let url = `${API_BASE}/discover?scope=${filterParams.scope}&state=${filterParams.state}&gender=${filterParams.gender}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error('Fetch failed');
             users = await res.json();
@@ -67,7 +76,7 @@
         applyFilters();
     }
 
-    // Apply Local Filters
+    // Apply Filters
     function applyFilters() {
         filteredUsers = users.filter(u => {
             if (filterParams.state && u.state !== filterParams.state) return false;
@@ -78,7 +87,7 @@
         initObservers();
     }
 
-    // Render Cards
+    // Render Cards (unchanged)
     function renderCards(userList = filteredUsers) {
         slotContainer.innerHTML = '';
         cards.clear();
@@ -104,9 +113,8 @@
         });
     }
 
-    // Center & Tilt (Unchanged, but re-init on filter)
+    // Center & Tilt (unchanged)
     function initObservers() {
-        // Observer code same as before
         const observer = new IntersectionObserver(entries => {
             entries.forEach(entry => {
                 const card = entry.target;
@@ -119,7 +127,7 @@
                     card.style.setProperty('--tilt-x', `${(Math.random() - 0.5) * 5}deg`);
                     card.style.setProperty('--scale', '1.02');
                 } else {
-                    card.classList.remove('active', 'tilted');
+                    card.classList.remove('active', 'tilted', 'squeeze');
                     card.style.removeProperty('--tilt-x');
                     card.style.removeProperty('--scale');
                 }
@@ -128,7 +136,7 @@
         document.querySelectorAll('.profile-card').forEach(card => observer.observe(card));
     }
 
-    // Tap Activation (No Stuck: Time-based)
+    // Tap Activation (unchanged)
     function setupCardEvents() {
         let tapStart = 0;
         slotContainer.addEventListener('pointerdown', (e) => {
@@ -136,24 +144,27 @@
             const cardRect = e.target.closest('.profile-card')?.getBoundingClientRect();
             if (!cardRect) return;
             tapStart = Date.now();
-            // Edge-only for panels, but tap anywhere for pop
         });
 
         slotContainer.addEventListener('pointerup', (e) => {
             if (Date.now() - tapStart < TAP_THRESHOLD && !isDragging) {
-                const card = cards.get(currentCenterId);
+                const card = currentCard();
                 if (card) card.classList.toggle('active');
             }
         });
 
-        // Keyboard unchanged
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowUp') slotContainer.scrollBy({ top: -window.innerHeight, behavior: 'smooth' });
             if (e.key === 'ArrowDown') slotContainer.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+            if (e.key === 'Escape') { // Close filters/chat
+                filterDropdown.classList.add('hidden');
+                chatModal.classList.add('hidden');
+                filterToggle.setAttribute('aria-expanded', 'false');
+            }
         });
     }
 
-    // Drag: Reversed + Edge-Only + Glitch-Free
+    // Drag: Squeeze on Open
     function setupDragEvents() {
         slotContainer.addEventListener('pointerdown', handleStart, { passive: false });
         slotContainer.addEventListener('pointermove', handleMove, { passive: false });
@@ -162,14 +173,16 @@
 
         function handleStart(e) {
             if (e.button !== 0 || !currentCenterId) return;
-            const cardRect = cards.get(currentCenterId).getBoundingClientRect();
-            const edgeDist = Math.min(e.clientX - cardRect.left, cardRect.right - e.clientX);
-            if (edgeDist > EDGE_WIDTH) return; // Not on edge → no panel drag
+            const cardRect = currentCard().getBoundingClientRect();
+            const edgeDistLeft = e.clientX - cardRect.left;
+            const edgeDistRight = cardRect.right - e.clientX;
+            const edgeDist = Math.min(edgeDistLeft, edgeDistRight);
+            if (edgeDist > EDGE_WIDTH) return;
             isDragging = true;
             dragStartTime = Date.now();
             startX = e.clientX;
             startY = e.clientY;
-            e.preventDefault(); // No glitch select
+            e.preventDefault();
         }
 
         function handleMove(e) {
@@ -179,42 +192,45 @@
             const deltaY = e.clientY - startY;
 
             if (Math.abs(deltaY) > Math.abs(deltaX) + DRAG_THRESHOLD) {
-                // Vertical: Custom smooth scroll (anti-glitch)
                 slotContainer.scrollTop += deltaY;
                 return;
             } 
             if (Math.abs(deltaX) > DRAG_THRESHOLD) {
-                // Horizontal: Reversed per spec
+                // Close others
                 leftPanel.classList.add('hidden');
                 rightPanel.classList.add('hidden');
-                if (deltaX > 0) { // Drag right → open left panel
+                const card = currentCard();
+                card.classList.remove('squeeze'); // Reset first
+                if (deltaX > 0) { // Drag right → left panel + squeeze
                     leftPanel.classList.remove('hidden');
-                } else { // Drag left → open right panel
+                    card.classList.add('squeeze');
+                } else { // Drag left → right panel + squeeze
                     rightPanel.classList.remove('hidden');
+                    card.classList.add('squeeze');
                 }
-                updateRightPanel(); // If right
+                updateRightPanel();
             }
         }
 
-        function handleEnd(e) {
+        function handleEnd() {
             if (!isDragging) return;
             isDragging = false;
-            // Auto-close if not hovering
             setTimeout(() => {
                 if (!leftPanel.matches(':hover') && !rightPanel.matches(':hover')) {
                     leftPanel.classList.add('hidden');
                     rightPanel.classList.add('hidden');
+                    currentCard()?.classList.remove('squeeze');
                 }
             }, 2000);
-            // Close panels on scroll
             slotContainer.addEventListener('scroll', () => {
                 leftPanel.classList.add('hidden');
                 rightPanel.classList.add('hidden');
+                currentCard()?.classList.remove('squeeze');
             }, { once: true });
         }
     }
 
-    // Panels & Actions (Unchanged except updateRightPanel uses currentUser)
+    // Panels
     function updateRightPanel() {
         if (!currentUser) return;
         document.getElementById('panel-name').textContent = currentUser.name;
@@ -226,18 +242,73 @@
         rightPanel.setAttribute('aria-hidden', 'false');
     }
 
+    // Actions: Chat Open
     function setupActions() {
         document.querySelectorAll('[data-action]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = e.target.dataset.action;
-                alert(`${action.toUpperCase()} for ${currentUser?.name}!`);
+                if (action === 'chat' && currentUser) {
+                    openChat(currentUser);
+                } else {
+                    alert(`${action.toUpperCase()} for ${currentUser?.name}!`);
+                }
             });
         });
     }
 
-    // Filters Setup
+    // Chat Functions
+    function openChat(user) {
+        chatTitle.innerHTML = `Chat with ${user.name}`;
+        chatMessages = [{ text: `Hi ${user.name}! What's your archetype story?`, isBot: true }];
+        renderChatBubbles();
+        chatModal.classList.remove('hidden');
+        chatInput.focus();
+    }
+
+    function renderChatBubbles() {
+        chatBubbles.innerHTML = chatMessages.map(msg => 
+            `<div class="chat-bubble ${msg.isBot ? 'bot' : 'user'}">${msg.text}</div>`
+        ).join('');
+        chatBubbles.scrollTop = chatBubbles.scrollHeight;
+    }
+
+    async function sendChatMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        chatMessages.push({ text, isBot: false });
+        chatInput.value = '';
+        renderChatBubbles();
+        // Mock send to HF /chat
+        try {
+            const res = await fetch(`${API_BASE}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser.id, message: text })
+            });
+            const data = await res.json();
+            setTimeout(() => {
+                chatMessages.push({ text: data.reply || `Echo: ${text} – Intriguing! Tell me more about your ${currentUser.archetype}.`, isBot: true });
+                renderChatBubbles();
+            }, 1000);
+        } catch {
+            setTimeout(() => {
+                chatMessages.push({ text: `Mock: ${text} resonates with your ${currentUser.archetype} energy!`, isBot: true });
+                renderChatBubbles();
+            }, 1000);
+        }
+    }
+
+    function shareMedia() {
+        // Mock: Append placeholder image bubble
+        chatMessages.push({ text: '[Shared Image: Placeholder]', isBot: false });
+        renderChatBubbles();
+        alert('Media shared! (Mock upload)');
+    }
+
+    // Filters: Enhanced Close
     function setupFilters() {
-        filterToggle.addEventListener('click', () => {
+        filterToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             const isOpen = !filterDropdown.classList.contains('hidden');
             filterDropdown.classList.toggle('hidden');
             filterToggle.setAttribute('aria-expanded', !isOpen);
@@ -247,12 +318,12 @@
             filterParams.scope = document.getElementById('scope-select').value;
             filterParams.state = document.getElementById('state-select').value;
             filterParams.gender = document.querySelector('input[name="gender"]:checked').value;
-            fetchUsers(); // Refetch with params
+            fetchUsers();
             filterDropdown.classList.add('hidden');
             filterToggle.setAttribute('aria-expanded', 'false');
         });
 
-        // Close on outside click
+        // Outside/ESC close
         document.addEventListener('click', (e) => {
             if (!filterToggle.contains(e.target) && !filterDropdown.contains(e.target)) {
                 filterDropdown.classList.add('hidden');
@@ -261,7 +332,14 @@
         });
     }
 
-    // Wheel: Anti-Glitch (Custom RAF for smooth)
+    // Chat Events
+    sendMessage.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+    shareMedia.addEventListener('click', shareMedia);
+    closeChat.addEventListener('click', () => chatModal.classList.add('hidden'));
+    chatModal.addEventListener('click', (e) => { if (e.target === chatModal) chatModal.classList.add('hidden'); });
+
+    // Wheel (unchanged)
     let rafId;
     slotContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
