@@ -49,7 +49,7 @@
                 <li><button data-action="quiz" aria-label="Compatibility Quiz">Compatibility Quiz</button></li>
                 <li><button data-action="vibe" aria-label="Vibe-Check">Vibe-Check</button></li>
                 <li><button data-action="story" aria-label="Create Story">Create Story</button></li>
-                <li><button data-action="chat" aria-label="Chat/DM" disabled>Chat/DM (Soon)</button></li>
+                <li><button data-action="chat" aria-label="Chat/DM">Chat/DM</button></li> <!-- Enabled -->
             </ul>
         </div>
     </aside>
@@ -68,6 +68,20 @@
             </dl>
         </div>
     </aside>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="chat-modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="chat-header">
+            <h4 id="chat-title">Chat with <span>-</span></h4>
+            <button class="close-chat" aria-label="Close Chat">×</button>
+        </div>
+        <div class="chat-bubbles" id="chat-bubbles" aria-live="polite"></div>
+        <div class="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Type a message..." aria-label="Message input">
+            <button id="send-message" aria-label="Send">Send</button>
+            <button id="share-media" aria-label="Share Media">📎</button>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
