@@ -2,8 +2,8 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
     font-family: 'Georgia', serif;
-    background-color: #f5f5dc;
-    color: #8b4513;
+    background-color: #f5f5dc; /* Parchment/Beige */
+    color: #8b4513; /* Brown/Sepia */
     overflow: hidden;
     min-height: 100vh;
     position: relative;
@@ -12,11 +12,8 @@ body {
 /* Grain Texture */
 body::before {
     content: '';
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background:
-        radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0),
-        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0);
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0);
     background-size: 50px 50px;
     pointer-events: none;
     z-index: -1;
@@ -24,18 +21,10 @@ body::before {
 }
 
 /* --- Top Navs (Login & Filters) --- */
-.top-nav {
-    position: fixed;
-    top: 1rem; right: 1rem;
-    z-index: 100;
-}
-.top-left-nav {
-    position: fixed;
-    top: 1rem; left: 1rem;
-    z-index: 100;
-}
+.top-nav { position: fixed; top: 1rem; right: 1rem; z-index: 100; }
+.top-left-nav { position: fixed; top: 1rem; left: 1rem; z-index: 100; }
 .filter-btn, .auth-btn {
-    background: rgba(212, 175, 55, 0.2);
+    background: rgba(212, 175, 55, 0.2); /* Gold hue */
     border: 1px solid #d4af37;
     padding: 0.75rem 1rem;
     border-radius: 15px;
@@ -44,26 +33,13 @@ body::before {
 }
 .filter-btn:hover, .auth-btn:hover { background: rgba(212, 175, 55, 0.4); }
 
-/* Filter Dropdown (Styles remain mostly same) */
 .filter-dropdown {
-    position: absolute;
-    top: 100%; right: 0;
-    background: #fffaf0;
-    border: 2px solid #d4af37;
-    border-radius: 15px;
-    padding: 1rem;
-    min-width: 250px;
-    box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
-    margin-top: 0.5rem;
-    transition: opacity 0.3s ease, visibility 0.3s;
+    position: absolute; top: 100%; right: 0; background: #fffaf0;
+    border: 2px solid #d4af37; border-radius: 15px; padding: 1rem;
+    min-width: 250px; box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+    margin-top: 0.5rem; transition: opacity 0.3s ease, visibility 0.3s;
 }
 .filter-dropdown.hidden { opacity: 0; visibility: hidden; }
-.filter-dropdown label { display: block; margin: 0.5rem 0; font-size: 0.9rem; }
-.filter-dropdown select, .filter-dropdown input[type="radio"] { margin-left: 0.5rem; }
-.filter-dropdown .gender-group { display: flex; align-items: center; }
-.filter-dropdown .gender-group label { margin-right: 0.5rem; }
-#apply-filter { width: 100%; margin-top: 1rem; }
-
 
 /* --- Slot Container & Cards (Reel) --- */
 #slot-container {
@@ -101,20 +77,34 @@ body::before {
 }
 
 /* Card Swipe Feedback */
-.profile-card.is-liked { border-color: #4CAF50; }
-.profile-card.is-disliked { border-color: #F44336; }
+.profile-card.is-liked { border-color: #4CAF50; } /* Green */
+.profile-card.is-disliked { border-color: #F44336; } /* Red */
 
-/* Tilt */
+/* Tilt & Active State (When centered) */
 .profile-card.tilted {
     transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) scale(var(--scale, 1.02));
 }
 .profile-card.active {
+    /* Ensures the card is lifted and z-indexed when wings are open */
     transform: translateZ(20px) scale(1.05);
     box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
     z-index: 10;
 }
 
-/* --- Card Wings (New Left/Right Panels) --- */
+.archetype-artwork {
+    flex: 1;
+    width: 100%;
+    height: 60%;
+    background-color: #f0e68c; /* Fallback for image loading */
+    border-radius: 15px;
+    margin-bottom: 1rem;
+    pointer-events: none;
+    /* Styles for the dynamic image */
+    background-size: cover; 
+    background-position: center;
+}
+
+/* --- Card Wings --- */
 .card-wing {
     position: absolute;
     top: 50%;
@@ -129,17 +119,18 @@ body::before {
     opacity: 0;
     visibility: hidden;
     transition: transform 0.4s ease, opacity 0.4s ease;
-    height: 80%; /* Takes up most of card height */
+    height: 80%;
     max-height: 400px;
+    overflow-y: auto;
 }
 
 .left-wing {
-    right: 100%; /* Initially positioned outside left of card */
+    right: 100%;
     margin-right: 20px;
     transform: translateY(-50%) translateX(-20px);
 }
 .right-wing {
-    left: 100%; /* Initially positioned outside right of card */
+    left: 100%;
     margin-left: 20px;
     transform: translateY(-50%) translateX(20px);
 }
@@ -165,20 +156,12 @@ body::before {
 }
 .wing-content button:hover { background: rgba(212, 175, 55, 0.4); }
 
-
 /* --- Card Actions and Info (Bottom) --- */
-.card-info {
-    position: absolute; bottom: 1rem; width: 100%; text-align: center; font-size: 0.8rem;
-}
+.card-info { position: absolute; bottom: 1rem; width: 100%; text-align: center; font-size: 0.8rem; }
 .card-actions {
-    position: absolute;
-    bottom: 3rem; /* Lifted above basic footer */
-    left: 0; right: 0;
-    display: flex;
-    justify-content: space-around;
-    padding: 0 2rem;
-    width: 100%;
-    z-index: 5;
+    position: absolute; bottom: 3rem; left: 0; right: 0;
+    display: flex; justify-content: space-around; padding: 0 2rem;
+    width: 100%; z-index: 5;
 }
 .action-btn {
     background: #fffaf0; border: 2px solid #d4af37; border-radius: 50%;
@@ -187,16 +170,17 @@ body::before {
     box-shadow: 0 2px 10px rgba(212, 175, 55, 0.5); transition: transform 0.2s;
 }
 .action-btn:hover { transform: scale(1.1); }
+
 .like-btn { border-color: #4CAF50; color: #4CAF50; }
 .dislike-btn { border-color: #F44336; color: #F44336; }
 .superlike-btn { border-color: #9370db; color: #9370db; }
+
 
 /* --- Modal/Login Styles --- */
 .modal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
-    align-items: center; z-index: 150;
-    transition: opacity 0.3s ease;
+    align-items: center; z-index: 150; transition: opacity 0.3s ease;
 }
 .modal.hidden { opacity: 0; pointer-events: none; }
 .modal-content {
@@ -204,29 +188,13 @@ body::before {
     padding: 2rem; width: 90%; max-width: 400px; position: relative;
     text-align: center;
 }
-.modal-content h3 { color: #d4af37; margin-bottom: 1.5rem; }
-.modal-content input {
-    width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #d4af37;
-    border-radius: 8px; font-size: 1rem;
-}
 .modal-content button {
     width: 100%; padding: 0.75rem; background: #d4af37; color: #fff;
     border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s;
+    margin-top: 0.5rem;
 }
 .modal-content button:hover { background: #b89429; }
 .modal-close-btn {
     position: absolute; top: 10px; right: 10px; width: 30px; height: 30px;
     background: transparent; border: none; font-size: 1.2rem; color: #8b4513;
 }
-
-/* Responsive */
-@media (max-width: 768px) {
-    .profile-card { flex: 0 0 60vh; width: 95%; }
-    .card-wing { width: 150px; padding: 0.75rem; }
-    .left-wing { margin-right: 10px; }
-    .right-wing { margin-left: 10px; }
-    .filter-dropdown { right: -50px; min-width: 200px; }
-}
-
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
