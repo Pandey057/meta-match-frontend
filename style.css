@@ -23,13 +23,18 @@ body::before {
     opacity: 0.5;
 }
 
-/* Top Nav: Filters */
+/* --- Top Navs (Login & Filters) --- */
 .top-nav {
     position: fixed;
     top: 1rem; right: 1rem;
     z-index: 100;
 }
-.filter-btn {
+.top-left-nav {
+    position: fixed;
+    top: 1rem; left: 1rem;
+    z-index: 100;
+}
+.filter-btn, .auth-btn {
     background: rgba(212, 175, 55, 0.2);
     border: 1px solid #d4af37;
     padding: 0.75rem 1rem;
@@ -37,7 +42,9 @@ body::before {
     cursor: pointer;
     transition: background 0.3s;
 }
-.filter-btn:hover { background: rgba(212, 175, 55, 0.4); }
+.filter-btn:hover, .auth-btn:hover { background: rgba(212, 175, 55, 0.4); }
+
+/* Filter Dropdown (Styles remain mostly same) */
 .filter-dropdown {
     position: absolute;
     top: 100%; right: 0;
@@ -52,12 +59,13 @@ body::before {
 }
 .filter-dropdown.hidden { opacity: 0; visibility: hidden; }
 .filter-dropdown label { display: block; margin: 0.5rem 0; font-size: 0.9rem; }
-.filter-dropdown select, .filter-dropdown input { margin-left: 0.5rem; }
+.filter-dropdown select, .filter-dropdown input[type="radio"] { margin-left: 0.5rem; }
 .filter-dropdown .gender-group { display: flex; align-items: center; }
 .filter-dropdown .gender-group label { margin-right: 0.5rem; }
 #apply-filter { width: 100%; margin-top: 1rem; }
 
-/* Slot Container */
+
+/* --- Slot Container & Cards (Reel) --- */
 #slot-container {
     height: 100vh;
     overflow-y: auto;
@@ -66,29 +74,23 @@ body::before {
     scroll-behavior: smooth;
     display: flex;
     flex-direction: column;
-    padding: 1rem 0 4rem; /* Extra bottom for filters */
+    padding: 1rem 0 4rem;
     gap: 1rem;
-    will-change: scroll-position; /* Perf hint */
+    will-change: scroll-position;
 }
 
-/* Cards */
 .profile-card {
     flex: 0 0 80vh;
     scroll-snap-align: center;
     background: linear-gradient(145deg, #fffaf0, #f0e68c);
     border: 3px solid #d4af37;
     border-radius: 25px;
-    box-shadow:
-        0 10px 30px rgba(212, 175, 55, 0.3),
-        inset 0 1px 0 rgba(255,255,255,0.5),
-        inset 0 -1px 0 rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
     position: relative;
     margin: 0 auto;
     width: 90%; max-width: 300px;
     cursor: grab;
-    transition: 
-        transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        border-color 0.4s ease; /* Added for like/dislike feedback */
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-color 0.4s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -99,68 +101,78 @@ body::before {
 }
 
 /* Card Swipe Feedback */
-.profile-card.is-liked { border-color: #4CAF50; } /* Green */
-.profile-card.is-disliked { border-color: #F44336; } /* Red */
-
-.profile-card::before { /* Aura */
-    content: '';
-    position: absolute;
-    top: -10px; left: -10px; right: -10px; bottom: -10px;
-    border-radius: 25px;
-    opacity: 0.7;
-    z-index: -1;
-    transition: background 0.4s ease;
-}
-
-.profile-card.empath::before { background: radial-gradient(circle, #87ceeb 0%, transparent 70%); }
-.profile-card.wanderer::before { background: radial-gradient(circle, #daa520 0%, transparent 70%); }
-.profile-card.creator::before { background: radial-gradient(circle, #ff69b4 0%, transparent 70%); }
-.profile-card.oracle::before { background: radial-gradient(circle, #9370db 0%, transparent 70%); }
-.profile-card.shadowlight::before { background: radial-gradient(circle, #696969 0%, transparent 70%); }
+.profile-card.is-liked { border-color: #4CAF50; }
+.profile-card.is-disliked { border-color: #F44336; }
 
 /* Tilt */
 .profile-card.tilted {
     transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) scale(var(--scale, 1.02));
 }
-
-/* Active Pop (for tap) */
 .profile-card.active {
     transform: translateZ(20px) scale(1.05);
     box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
     z-index: 10;
 }
 
-/* Overlays */
-.card-overlay {
+/* --- Card Wings (New Left/Right Panels) --- */
+.card-wing {
     position: absolute;
-    top: 1rem; left: 1rem; right: 1rem;
-    background: rgba(255,255,255,0.8);
-    border-radius: 10px;
-    padding: 0.5rem;
-    backdrop-filter: blur(5px);
-}
-
-.archetype-artwork {
-    flex: 1;
-    width: 100%;
-    height: 60%;
-    background: #f0e68c;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 250px;
+    background: #fffaf0;
+    border: 2px solid #d4af37;
     border-radius: 15px;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 4rem;
-    pointer-events: none;
+    padding: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 15;
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+    height: 80%; /* Takes up most of card height */
+    max-height: 400px;
 }
 
-.archetype-title { font-size: 1.5rem; font-weight: bold; color: #d4af37; margin-bottom: 0.5rem; }
-.archetype-meaning { font-style: italic; font-size: 0.9rem; color: #8b4513; }
+.left-wing {
+    right: 100%; /* Initially positioned outside left of card */
+    margin-right: 20px;
+    transform: translateY(-50%) translateX(-20px);
+}
+.right-wing {
+    left: 100%; /* Initially positioned outside right of card */
+    margin-left: 20px;
+    transform: translateY(-50%) translateX(20px);
+}
 
-/* Card Actions Footer */
+/* Active State: Show wings */
+.profile-card.active .left-wing {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+}
+.profile-card.active .right-wing {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+}
+
+.wing-content h4 { text-align: center; color: #d4af37; margin-bottom: 0.8rem; }
+.wing-content ul, .wing-content dl { list-style: none; padding: 0; }
+.wing-content button { 
+    display: block; width: 100%; padding: 0.75rem; margin: 0.5rem 0; 
+    background: rgba(212, 175, 55, 0.2); border: 1px solid #d4af37; 
+    border-radius: 10px; cursor: pointer; transition: background 0.3s; 
+}
+.wing-content button:hover { background: rgba(212, 175, 55, 0.4); }
+
+
+/* --- Card Actions and Info (Bottom) --- */
+.card-info {
+    position: absolute; bottom: 1rem; width: 100%; text-align: center; font-size: 0.8rem;
+}
 .card-actions {
     position: absolute;
-    bottom: 5rem; /* Lifted above basic footer */
+    bottom: 3rem; /* Lifted above basic footer */
     left: 0; right: 0;
     display: flex;
     justify-content: space-around;
@@ -168,74 +180,53 @@ body::before {
     width: 100%;
     z-index: 5;
 }
-
 .action-btn {
-    background: #fffaf0;
-    border: 2px solid #d4af37;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(212, 175, 55, 0.5);
-    transition: transform 0.2s, background 0.2s;
+    background: #fffaf0; border: 2px solid #d4af37; border-radius: 50%;
+    width: 40px; height: 40px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.2rem; cursor: pointer;
+    box-shadow: 0 2px 10px rgba(212, 175, 55, 0.5); transition: transform 0.2s;
 }
-
-.action-btn:hover {
-    transform: scale(1.1);
-}
-
+.action-btn:hover { transform: scale(1.1); }
 .like-btn { border-color: #4CAF50; color: #4CAF50; }
 .dislike-btn { border-color: #F44336; color: #F44336; }
 .superlike-btn { border-color: #9370db; color: #9370db; }
 
-/* Side Panels */
-.side-panel {
-    position: fixed;
-    top: 50%; transform: translateY(-50%);
-    width: 250px; height: 400px;
-    background: linear-gradient(145deg, #fffaf0, #f0e68c);
-    border: 2px solid #d4af37;
-    border-radius: 30px;
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
-    padding: 2rem;
-    z-index: 20;
-    transition: 
-        transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        opacity 0.4s ease; /* Smoother transition */
-    overflow-y: auto;
+/* --- Modal/Login Styles --- */
+.modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center;
+    align-items: center; z-index: 150;
+    transition: opacity 0.3s ease;
 }
-
-#left-panel { left: 50px; transform: translateY(-50%) translateX(-100%); }
-#left-panel:not(.hidden) { transform: translateY(-50%) translateX(0); }
-#right-panel { right: 50px; transform: translateY(-50%) translateX(100%); }
-#right-panel:not(.hidden) { transform: translateY(-50%) translateX(0); }
-
-/* Apply opacity/pointer-events when hidden for smooth transition */
-.side-panel.hidden { opacity: 0; pointer-events: none; }
-.side-panel:not(.hidden) { opacity: 1; pointer-events: auto; }
-
-.panel-content { height: 100%; }
-.panel-content h3 { text-align: center; margin-bottom: 1rem; color: #d4af37; }
-.panel-content ul, .panel-content dl { list-style: none; }
-.panel-content button { display: block; width: 100%; padding: 0.75rem; margin: 0.5rem 0; background: rgba(212, 175, 55, 0.2); border: 1px solid #d4af37; border-radius: 15px; cursor: pointer; transition: background 0.3s; }
-.panel-content button:hover { background: rgba(212, 175, 55, 0.4); }
-.panel-content button:disabled { opacity: 0.5; cursor: not-allowed; }
-.panel-content dt { font-weight: bold; margin-top: 1rem; }
-.panel-content dd { margin-bottom: 0.5rem; }
+.modal.hidden { opacity: 0; pointer-events: none; }
+.modal-content {
+    background: #fffaf0; border: 3px solid #d4af37; border-radius: 20px;
+    padding: 2rem; width: 90%; max-width: 400px; position: relative;
+    text-align: center;
+}
+.modal-content h3 { color: #d4af37; margin-bottom: 1.5rem; }
+.modal-content input {
+    width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #d4af37;
+    border-radius: 8px; font-size: 1rem;
+}
+.modal-content button {
+    width: 100%; padding: 0.75rem; background: #d4af37; color: #fff;
+    border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s;
+}
+.modal-content button:hover { background: #b89429; }
+.modal-close-btn {
+    position: absolute; top: 10px; right: 10px; width: 30px; height: 30px;
+    background: transparent; border: none; font-size: 1.2rem; color: #8b4513;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
     .profile-card { flex: 0 0 60vh; width: 95%; }
-    .side-panel { width: 200px; height: 300px; padding: 1rem; }
-    #left-panel { left: 20px; }
-    #right-panel { right: 20px; }
+    .card-wing { width: 150px; padding: 0.75rem; }
+    .left-wing { margin-right: 10px; }
+    .right-wing { margin-left: 10px; }
     .filter-dropdown { right: -50px; min-width: 200px; }
 }
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
-@media (prefers-contrast: high) { .profile-card { border-width: 4px; } }
