@@ -1,39 +1,46 @@
-// Meta Match App - FULL BUILD: Gestures, Filters, Actions (Dec 2025)
+// Meta Match App - FULL BUILD: Wings, Login, Gestures, Filters (Dec 2025)
 (function() {
     'use strict';
 
     // Config
     const API_BASE = 'https://pandeyprateek057-meta-match.hf.space';
-    const DRAG_THRESHOLD = 50; // Minimum drag to start moving panels/scroll
-    const SWIPE_THRESHOLD = 150; // Minimum horizontal drag to trigger like/dislike action
-    const EDGE_WIDTH = 50; // Drag must start on edge for panels
-    const TAP_THRESHOLD = 150; // ms for tap vs drag
+    const DRAG_THRESHOLD = 50; 
+    const SWIPE_THRESHOLD = 150;
+    const TAP_THRESHOLD = 150; 
     const archetypes = ['empath', 'wanderer', 'creator', 'oracle', 'shadowlight'];
+    
+    // Auth State - Mocked for demo
+    let isLoggedIn = false; 
+    let currentMobile = '';
 
     // State
     let users = [];
     let filteredUsers = [];
     let currentCenterId = null;
     let isDragging = false;
-    let dragStartTime = 0;
     let startX = 0, startY = 0;
     let currentUser = null;
     let filterParams = { scope: 'global', state: '', gender: '' };
 
     // DOM
     const slotContainer = document.getElementById('slot-container');
-    const leftPanel = document.getElementById('left-panel');
-    const rightPanel = document.getElementById('right-panel');
     const cards = new Map();
     const filterToggle = document.getElementById('filter-toggle');
     const filterDropdown = document.querySelector('.filter-dropdown');
     const applyFilter = document.getElementById('apply-filter');
+    const loginBtn = document.getElementById('login-btn');
+    const authModal = document.getElementById('auth-modal');
+    const loginForm = document.getElementById('login-form');
+    const otpForm = document.getElementById('otp-form');
+    const mobileInput = document.getElementById('mobile-number');
+    const otpInput = document.getElementById('otp-code');
+    const modalCloseBtn = document.querySelector('.modal-close-btn');
 
-    // Dummies with Gender
+    // Dummies (unchanged)
     function generateDummies() {
         const dummies = [];
-        const namesM = ['Aarav', 'Raj', 'Vikram', 'Arjun', 'Siddharth']; // Male
-        const namesF = ['Priya', 'Meera', 'Lila', 'Sita', 'Zara']; // Female
+        const namesM = ['Aarav', 'Raj', 'Vikram', 'Arjun', 'Siddharth'];
+        const namesF = ['Priya', 'Meera', 'Lila', 'Sita', 'Zara'];
         const states = ['Maharashtra', 'Karnataka', 'Delhi', 'Tamil Nadu', 'Gujarat', 'West Bengal'];
         const intents = ['Seeking Adventure', 'Deep Connections', 'Creative Sparks', 'Wisdom Exchange', 'Balance Journey'];
         const abouts = ['Loves midnight philosophies.', 'Artist at heart.', 'Wanderlust eternal.', 'Seer of patterns.', 'Dancing in shadows.'];
@@ -54,10 +61,11 @@
         return dummies;
     }
 
-    // Fetch with Filters
+    // Fetch and Filter (unchanged)
     async function fetchUsers() {
+        // ... (API call logic)
         try {
-            // NOTE: For a real app, you would include filterParams in the URL for backend filtering
+             // Example URL for discovery API endpoint
             let url = `${API_BASE}/discover?global=${filterParams.scope === 'global' ? 1 : 0}&state=${filterParams.state}&gender=${filterParams.gender}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error('Fetch failed');
@@ -68,8 +76,6 @@
         }
         applyFilters();
     }
-
-    // Apply Local Filters
     function applyFilters() {
         filteredUsers = users.filter(u => {
             if (filterParams.state && u.state !== filterParams.state) return false;
@@ -80,8 +86,14 @@
         initObservers();
     }
 
-    // Handle Swipe Action (Like, Dislike, Superlike)
+    // Handle Swipe Action (Like, Dislike, Superlike) (Modified)
     function handleSwipeAction(userId, action) {
+        if (!isLoggedIn) {
+            alert("Please Login first to perform actions!");
+            openAuthModal();
+            return;
+        }
+
         const card = cards.get(userId);
         if (!card) return;
 
@@ -95,12 +107,11 @@
             className = 'is-disliked';
             transformStyle = 'translateX(-500px) rotateZ(-30deg) scale(0.5)';
         } else if (action === 'superlike') {
-            className = 'is-superliked'; // Assuming you add this CSS class
+            className = 'is-liked'; // Re-use like style for demo, but can be separate
             transformStyle = 'translateY(-500px) rotateZ(0deg) scale(0.5)';
         }
         
         console.log(`Action: ${action.toUpperCase()} on user ${userId}`);
-        // TODO: Send action to backend via API (e.g., fetch(`${API_BASE}/match/${userId}/${action}`, {method: 'POST'}) )
         
         card.classList.add(className);
         card.style.transition = 'transform 0.5s ease-out, opacity 0.5s';
@@ -111,12 +122,42 @@
         setTimeout(() => {
             card.remove();
             cards.delete(userId);
-            // Optional: Scroll to the next card after the swipe animation is complete
-            slotContainer.scrollBy({ top: cards.get(currentCenterId) ? 0 : window.innerHeight, behavior: 'smooth' });
+            // Scroll to next card if available
+            slotContainer.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
         }, 500);
     }
+    
+    // --- Wing Content Generation ---
+    function getLeftWingHTML(user) {
+        return `
+            <div class="wing-content">
+                <h4>Engage with ${user.name}</h4>
+                <ul role="menu">
+                    <li><button data-action="game" aria-label="Play Game">Play Game</button></li>
+                    <li><button data-action="quiz" aria-label="Compatibility Quiz">Compatibility Quiz</button></li>
+                    <li><button data-action="vibe" aria-label="Vibe-Check">Vibe-Check</button></li>
+                    <li><button data-action="story" aria-label="Create Story">Create Story</button></li>
+                </ul>
+            </div>
+        `;
+    }
 
-    // Render Cards
+    function getRightWingHTML(user) {
+        return `
+            <div class="wing-content">
+                <h4>${user.name}'s Profile</h4>
+                <dl>
+                    <dt>Age</dt><dd>${user.age}</dd>
+                    <dt>Archetype</dt><dd>${user.archetype.charAt(0).toUpperCase() + user.archetype.slice(1)}</dd>
+                    <dt>Intent</dt><dd>${user.intent}</dd>
+                    <dt>About</dt><dd>${user.about}</dd>
+                </dl>
+                <button data-action="connect" aria-label="Connect and Chat">Connect & Chat</button>
+            </div>
+        `;
+    }
+
+    // Render Cards (Modified to include Wing placeholders)
     function renderCards(userList = filteredUsers) {
         slotContainer.innerHTML = '';
         cards.clear();
@@ -125,8 +166,11 @@
             card.className = `profile-card ${user.archetype}`;
             card.dataset.userId = user.id;
             card.innerHTML = `
-                <div class="archetype-artwork">
-                    </div>
+                <div class="card-wing left-wing" role="complementary" aria-label="Activities">${getLeftWingHTML(user)}</div>
+                
+                <div class="card-wing right-wing" role="complementary" aria-label="Profile Details">${getRightWingHTML(user)}</div>
+
+                <div class="archetype-artwork"></div>
                 <div class="card-overlay">
                     <div class="archetype-title">${user.archetype.charAt(0).toUpperCase() + user.archetype.slice(1)}</div>
                     <div class="archetype-meaning">${user.intent}</div>
@@ -148,103 +192,58 @@
         });
     }
 
-    // Center & Tilt Observer
-    function initObservers() {
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                const card = entry.target;
-                const userId = card.dataset.userId;
-                
-                // Determine if card is centered (or near center) and highly visible
-                const rect = entry.boundingClientRect;
-                const centerThreshold = window.innerHeight * 0.2; // 20% of viewport from center
-                const isCenter = Math.abs(rect.top - (window.innerHeight / 2 - card.offsetHeight / 2)) < centerThreshold;
-                
-                if (isCenter && entry.intersectionRatio > 0.5) {
-                    if (currentCenterId !== userId) {
-                         // Reset previous card if it exists
-                        const prevCard = cards.get(currentCenterId);
-                        if(prevCard) prevCard.classList.remove('active', 'tilted');
-                        
-                        currentCenterId = userId;
-                        currentUser = filteredUsers.find(u => u.id === currentCenterId);
-                    }
-                    card.classList.add('active', 'tilted');
-                    card.style.setProperty('--tilt-x', `${(Math.random() - 0.5) * 5}deg`);
-                    card.style.setProperty('--scale', '1.02');
-                } else {
-                    if (currentCenterId !== userId) {
-                        card.classList.remove('active', 'tilted');
-                        card.style.removeProperty('--tilt-x');
-                        card.style.removeProperty('--scale');
-                    }
-                }
-            });
-        }, { threshold: [0.5], rootMargin: '0px' });
-        
-        document.querySelectorAll('.profile-card').forEach(card => observer.observe(card));
-    }
-
-    // Tap Activation (Open Card Details/Expanded View)
+    // Setup Card Events (Modified for button actions within wings)
     function setupCardEvents() {
         let tapStart = 0;
         slotContainer.addEventListener('pointerdown', (e) => {
             if (!e.isPrimary) return;
-            // Check if the tap is on an action button, if so, don't register as a main tap
-            if (e.target.closest('.action-btn')) return;
+            // Only register tap if it's not on an interactive element
+            if (e.target.closest('.action-btn') || e.target.closest('.card-wing button')) return;
             tapStart = Date.now();
         });
 
         slotContainer.addEventListener('pointerup', (e) => {
+            // Tap to toggle 'active' class (which shows wings via CSS)
             if (Date.now() - tapStart < TAP_THRESHOLD && !isDragging) {
                 const card = cards.get(currentCenterId);
                 if (card) {
-                    // For a full app, this would open a full-screen modal profile view
-                    card.classList.toggle('active'); 
-                    console.log('Tapped card: Open Expanded View');
+                    card.classList.toggle('active');
                 }
             }
         });
 
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') slotContainer.scrollBy({ top: -window.innerHeight, behavior: 'smooth' });
-            if (e.key === 'ArrowDown') slotContainer.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
-        });
-        
-        // Button actions
+        // Main action buttons (bottom of card)
         slotContainer.addEventListener('click', (e) => {
             const btn = e.target.closest('.action-btn');
             if (btn && currentCenterId) {
                 handleSwipeAction(currentCenterId, btn.dataset.action);
-                e.stopPropagation(); // Prevent the main tap handler from firing
+                e.stopPropagation(); 
+            }
+            
+            // Wing action buttons
+            const wingBtn = e.target.closest('.card-wing button');
+            if (wingBtn) {
+                const action = wingBtn.dataset.action;
+                alert(`${action.toUpperCase()} for ${currentUser?.name}!`);
+                cards.get(currentCenterId)?.classList.remove('active'); // Close wings after action
+                e.stopPropagation();
             }
         });
     }
 
-    // Drag: Panels and Swipes
+    // Drag: Card Swipe and Wing Interaction (Modified)
     function setupDragEvents() {
         slotContainer.addEventListener('pointerdown', handleStart, { passive: false });
         slotContainer.addEventListener('pointermove', handleMove, { passive: false });
         slotContainer.addEventListener('pointerup', handleEnd, { passive: false });
         slotContainer.addEventListener('pointerleave', handleEnd, { passive: false });
 
-        let isHorizontalDrag = false; // To distinguish between vertical scroll and horizontal swipe/panel
-        let isPanelDrag = false; // To track if we're dragging from the edge for panels
+        let isHorizontalDrag = false;
 
         function handleStart(e) {
             if (e.button !== 0 || !currentCenterId) return;
-            const card = cards.get(currentCenterId);
-            if (!card) return;
-            const cardRect = card.getBoundingClientRect();
-            
-            // Edge check for panels
-            const edgeDist = Math.min(e.clientX - cardRect.left, cardRect.right - e.clientX);
-            isPanelDrag = edgeDist <= EDGE_WIDTH;
-            
             isDragging = true;
             isHorizontalDrag = false;
-            dragStartTime = Date.now();
             startX = e.clientX;
             startY = e.clientY;
             e.preventDefault(); 
@@ -259,8 +258,7 @@
 
             // Determine primary direction
             if (!isHorizontalDrag && Math.abs(deltaY) > Math.abs(deltaX) + DRAG_THRESHOLD) {
-                // Vertical Drag: Custom smooth scroll
-                // FIX: Drag down (positive deltaY) should scroll down (subtract delta from scrollTop)
+                // Vertical Drag: Custom smooth scroll (FIXED: drag down scrolls down)
                 slotContainer.scrollTop -= deltaY;
                 return;
             }
@@ -270,27 +268,9 @@
             }
 
             if (isHorizontalDrag) {
-                if (isPanelDrag) { 
-                    // Horizontal Panel Drag (Edge only)
-                    leftPanel.classList.add('hidden');
-                    rightPanel.classList.add('hidden');
-                    leftPanel.setAttribute('aria-hidden', 'true');
-                    rightPanel.setAttribute('aria-hidden', 'true');
-
-                    if (deltaX > DRAG_THRESHOLD) { // Drag right → open left panel
-                        leftPanel.classList.remove('hidden');
-                        leftPanel.setAttribute('aria-hidden', 'false');
-                    } else if (deltaX < -DRAG_THRESHOLD) { // Drag left → open right panel
-                        rightPanel.classList.remove('hidden');
-                        rightPanel.setAttribute('aria-hidden', 'false');
-                        updateRightPanel(); 
-                    }
-                } else { 
-                    // Card Swipe Drag (Center)
-                    const translateX = deltaX;
-                    // Apply visual move and rotation
-                    card.style.transform = `translateX(${translateX}px) rotateZ(${translateX * 0.05}deg) scale(1.02)`;
-                }
+                // Card Swipe Drag (Center) - Visual feedback only
+                const translateX = deltaX;
+                card.style.transform = `translateX(${translateX}px) rotateZ(${translateX * 0.05}deg) scale(1.02)`;
             }
         }
 
@@ -303,99 +283,82 @@
             // Reset visual move immediately
             card.style.transform = ''; 
 
-            if (!isPanelDrag && isHorizontalDrag && Math.abs(deltaX) > SWIPE_THRESHOLD) {
-                // Trigger Like/Dislike/Superlike on sufficient center swipe
+            if (isHorizontalDrag && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+                // Trigger Like/Dislike on sufficient center swipe
                 const action = deltaX > 0 ? 'like' : 'dislike';
                 handleSwipeAction(currentCenterId, action);
-
             } else {
                 // If not a deliberate swipe, ensure the card resets its position/tilt
                 card.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                 card.style.removeProperty('transform');
             }
             
-            // Auto-close panels on scroll (or any movement that isn't a deliberate hold)
-            slotContainer.addEventListener('scroll', closePanels, { once: true });
-            
             isHorizontalDrag = false;
-            isPanelDrag = false;
         }
     }
     
-    function closePanels() {
-        leftPanel.classList.add('hidden');
-        rightPanel.classList.add('hidden');
-        rightPanel.setAttribute('aria-hidden', 'true');
-        leftPanel.setAttribute('aria-hidden', 'true');
+    // --- Login/Auth Setup ---
+    function openAuthModal() {
+        authModal.classList.remove('hidden');
+        authModal.setAttribute('aria-hidden', 'false');
     }
 
-    // Panels & Actions
-    function updateRightPanel() {
-        if (!currentUser) return;
-        document.getElementById('panel-name').textContent = currentUser.name;
-        document.getElementById('panel-age').textContent = currentUser.age;
-        document.getElementById('panel-state').textContent = currentUser.state;
-        document.getElementById('panel-archetype').textContent = currentUser.archetype;
-        document.getElementById('panel-intent').textContent = currentUser.intent;
-        document.getElementById('panel-about').textContent = currentUser.about;
-        rightPanel.setAttribute('aria-hidden', 'false');
+    function closeAuthModal() {
+        authModal.classList.add('hidden');
+        authModal.setAttribute('aria-hidden', 'true');
+        // Reset forms
+        loginForm.classList.remove('hidden');
+        otpForm.classList.add('hidden');
+        document.getElementById('modal-title').textContent = 'Enter Mobile Number';
     }
 
-    function setupActions() {
-        document.querySelectorAll('#left-panel [data-action]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = e.target.dataset.action;
-                alert(`${action.toUpperCase()} for ${currentUser?.name}!`);
-                closePanels(); // Close panel after action
-            });
-        });
-    }
-
-    // Filters Setup
-    function setupFilters() {
-        filterToggle.addEventListener('click', () => {
-            const isOpen = filterDropdown.classList.toggle('hidden');
-            filterToggle.setAttribute('aria-expanded', !isOpen);
+    function setupAuth() {
+        loginBtn.addEventListener('click', openAuthModal);
+        modalCloseBtn.addEventListener('click', closeAuthModal);
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) closeAuthModal();
         });
 
-        applyFilter.addEventListener('click', () => {
-            filterParams.scope = document.getElementById('scope-select').value;
-            filterParams.state = document.getElementById('state-select').value;
-            filterParams.gender = document.querySelector('input[name="gender"]:checked').value;
-            fetchUsers(); // Refetch with params
-            filterDropdown.classList.add('hidden');
-            filterToggle.setAttribute('aria-expanded', 'false');
+        // Step 1: Send OTP
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            currentMobile = mobileInput.value;
+            // MOCK: Replace with API call to send OTP to currentMobile
+            console.log(`Sending OTP to: ${currentMobile}`);
+            
+            // On success: Switch to OTP form
+            loginForm.classList.add('hidden');
+            otpForm.classList.remove('hidden');
+            document.getElementById('modal-title').textContent = `Verify OTP sent to ${currentMobile}`;
+            otpInput.focus();
         });
 
-        // Close on outside click
-        document.addEventListener('click', (e) => {
-            if (!filterToggle.contains(e.target) && !filterDropdown.contains(e.target)) {
-                filterDropdown.classList.add('hidden');
-                filterToggle.setAttribute('aria-expanded', 'false');
+        // Step 2: Verify OTP
+        otpForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const otp = otpInput.value;
+            // MOCK: Replace with API call to verify OTP
+            
+            if (otp === '123456') { // Mock success check
+                isLoggedIn = true;
+                loginBtn.textContent = 'Logged In';
+                loginBtn.disabled = true;
+                alert('Login Successful!');
+                closeAuthModal();
+                console.log('User logged in with mobile:', currentMobile);
+            } else {
+                alert('Invalid OTP. Please try again.');
             }
         });
     }
-
-    // Wheel: Anti-Glitch (Custom RAF for smooth)
-    let rafId;
-    slotContainer.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        if (rafId) cancelAnimationFrame(rafId);
-        // Reduce scroll speed for a smoother, less glitchy feel
-        const delta = e.deltaY * 0.3; 
-        let newTop = slotContainer.scrollTop + delta;
-        rafId = requestAnimationFrame(() => {
-            slotContainer.scrollTo({ top: newTop, behavior: 'auto' });
-        });
-    }, { passive: false });
 
     // Init
     async function init() {
         await fetchUsers();
         setupCardEvents();
         setupDragEvents();
-        setupActions();
         setupFilters();
+        setupAuth();
     }
 
     init();
