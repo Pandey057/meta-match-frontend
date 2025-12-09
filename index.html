@@ -9,9 +9,8 @@
     <meta name="theme-color" content="#d4af37">
 </head>
 <body>
-    <!-- Top Nav: Filters -->
     <nav class="top-nav" role="banner" aria-label="Filters">
-        <button class="filter-btn" id="filter-toggle" aria-expanded="false" aria-label="Open Filters">🔍 Filters</button>
+        <button class="filter-btn" id="filter-toggle" aria-expanded="false" aria-label="Open Filters"> Filters</button>
         <div class="filter-dropdown hidden" role="menu" aria-hidden="true">
             <label>Scope: <select id="scope-select">
                 <option value="global">Global</option>
@@ -26,7 +25,7 @@
                 <option value="Tamil Nadu">Tamil Nadu</option>
                 <option value="Gujarat">Gujarat</option>
             </select></label>
-            <label>Gender: 
+            <label class="gender-group">Gender:
                 <input type="radio" name="gender" value="M" id="gender-m"> <label for="gender-m">Male</label>
                 <input type="radio" name="gender" value="F" id="gender-f"> <label for="gender-f">Female</label>
                 <input type="radio" name="gender" value="" id="gender-all" checked> <label for="gender-all">All</label>
@@ -35,12 +34,9 @@
         </div>
     </nav>
 
-    <!-- Main Slot Container -->
     <main id="slot-container" role="main" aria-label="Archetype Reel">
-        <!-- Cards injected via JS -->
-    </main>
+        </main>
 
-    <!-- Left Panel: Actions -->
     <aside id="left-panel" class="side-panel hidden" role="complementary" aria-label="Actions" aria-hidden="true">
         <div class="panel-content">
             <h3>Actions</h3>
@@ -49,12 +45,11 @@
                 <li><button data-action="quiz" aria-label="Compatibility Quiz">Compatibility Quiz</button></li>
                 <li><button data-action="vibe" aria-label="Vibe-Check">Vibe-Check</button></li>
                 <li><button data-action="story" aria-label="Create Story">Create Story</button></li>
-                <li><button data-action="chat" aria-label="Chat/DM">Chat/DM</button></li> <!-- Enabled -->
+                <li><button data-action="chat" aria-label="Chat/DM" disabled>Chat/DM (Soon)</button></li>
             </ul>
         </div>
     </aside>
 
-    <!-- Right Panel: Profile -->
     <aside id="right-panel" class="side-panel hidden" role="complementary" aria-label="Profile Details" aria-hidden="true">
         <div class="panel-content">
             <h3>Details</h3>
@@ -68,20 +63,6 @@
             </dl>
         </div>
     </aside>
-
-    <!-- Chat Modal -->
-    <div id="chat-modal" class="chat-modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
-        <div class="chat-header">
-            <h4 id="chat-title">Chat with <span>-</span></h4>
-            <button class="close-chat" aria-label="Close Chat">×</button>
-        </div>
-        <div class="chat-bubbles" id="chat-bubbles" aria-live="polite"></div>
-        <div class="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Type a message..." aria-label="Message input">
-            <button id="send-message" aria-label="Send">Send</button>
-            <button id="share-media" aria-label="Share Media">📎</button>
-        </div>
-    </div>
 
     <script src="app.js"></script>
 </body>
